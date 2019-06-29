@@ -2,10 +2,10 @@ const path = require('path');
 
 const express = require('express');
 const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
 // const expressHbs = require('express-handlebars');
 
 const errorController = require('./controllers/error');
-const mongoConnect = require('./util/database').mongoConnect;
 const User = require('./models/user');
 
 const app = express();
@@ -30,11 +30,12 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Handles static middleware ('public' folder)
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Tässä liitetään req.user:iin Mongoose model jolloin voidaan kutsua kaikki propertyjä ja funktioita
 app.use((req, res, next) => {
-    User.findById("5ce2b99a80ea8671b3690a8c")
+    User.findById("5d15138d4106f22c2c0ef009")
         .then(user => {
             // !!!!!!!!!!!!!!!!!!!!!!!!!!
-            req.user = new User(user.name, user.email, user.cart, user._id);
+            req.user = user;
             next();
         })
         .catch(err => console.log(err));
@@ -46,10 +47,27 @@ app.use(shopRoutes);
 // 404 Error page
 app.use(errorController.get404);
 
-mongoConnect(() => {
-    // if (5ce2b99a80ea8671b3690a8c)
+mongoose.connect(
+    'mongodb+srv://pasi:2Karre3Ilmari@cluster0-leh6j.mongodb.net/shop?retryWrites=true&w=majority',
+    { useNewUrlParser: true }
+).then(result => {
+    User.findOne().then(user => {
+        if (!user) {
+            const user = new User({
+                name: "Pasi",
+                email: "pasi.juurakko@gmail.com",
+                cart: {
+                    items: []
+                }
+            });
+            user.save();
+        }
+    })
+
     app.listen(3000);
+
+    console.log(' --- Server Started ---');
+    console.log(' +++ Connected to Mongoose DB +++');
+}).catch(err => {
+    console.log(err)
 });
-
-
-
