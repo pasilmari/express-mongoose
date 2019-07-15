@@ -84,7 +84,10 @@ exports.postEditProduct = (req, res, next) => {
 exports.getProducts = (req, res, next) => {
 
   Product.find()
+  // .select('title price -_id') // Hakee vaan title ja price kentät eikä _id:tä
+    // .populate('userId', 'name') // Hakee userId tiedot ja vain name kentän
     .then(products => {
+      console.log(products);
       res.render('admin/products', {
         prods: products,
         pageTitle: 'Admin Products',
